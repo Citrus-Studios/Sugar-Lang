@@ -1,4 +1,3 @@
-
 pub enum Tokens {
     Bang,
     Char,
@@ -11,4 +10,22 @@ pub enum Tokens {
     SemiColon,
     Colon,
     Space,
+}
+
+pub struct TokensStruct {
+    token: Tokens,
+    char: char,
+    line: u128,
+    char_pos: u128,
+}
+
+impl TokensStruct {
+    pub fn new(token: Tokens, char: char, line: u128, char_pos: u128) -> Self {
+        Self {
+            token,
+            char,
+            line,
+            char_pos,
+        }
+    }
 }
