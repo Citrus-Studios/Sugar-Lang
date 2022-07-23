@@ -2,14 +2,14 @@ use clap::Parser;
 use std::fs::File;
 use std::io::prelude::*;
 
-mod tokens;
 mod lexer;
+mod tokens;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[clap(short, long, default_value="main.sug")]
-    file: String
+    #[clap(short, long, default_value = "main.sug")]
+    file: String,
 }
 
 fn main() {
