@@ -1,15 +1,16 @@
 pub enum Tokens {
     Bang,
-    Char,
     Equal,
     Minus,
     Add,
     Multiply,
+    Subtract,
     Divide,
     Delimiter,
     SemiColon,
     Colon,
     Space,
+    Ident,
 }
 
 pub struct TokensStruct {
@@ -26,6 +27,22 @@ impl TokensStruct {
             char,
             line,
             char_pos,
+        }
+    }
+}
+
+impl Into<Tokens> for String {
+    fn into(self) -> Tokens {
+        match self.as_str() {
+            "!" => Tokens::Bang,
+            "}" | "{" | "] | "[" | ")" | "(" => Tokens::Delimiter,
+            " " => Tokens::Space,
+            "+" => Tokens::Add,
+            "*" => Tokens::Multiply,
+            "-" => Tokens::Subtract,
+            ";" => Tokens::SemiColon,
+            ":" => Tokens::Colon,
+            _ => Tokens::Ident,
         }
     }
 }
