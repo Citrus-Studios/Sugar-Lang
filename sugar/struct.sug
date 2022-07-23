@@ -1,0 +1,13 @@
+struct Foo = {
+    bar => byte;
+};
+
+dec add = Self -> byte -> byte;
+def add >> Foo => this, other = {
+    ret this.bar + other;
+};
+
+dec main = ! -> byte;
+def main = {
+    ret 0;
+};

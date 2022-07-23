@@ -1,0 +1,14 @@
+class Foo = {
+    prop bar = byte;
+    prop baz = byte = 10;
+
+    dec add = Self -> byte -> byte;
+    def add => this, other = {
+        ret this.bar + other;
+    };
+};
+
+dec main = ! -> byte;
+def main = {
+    ret 0;
+};

@@ -1,0 +1,12 @@
+enum Foo = {
+    Bar;
+    Baz => byte;
+    Boo = struct = {
+        cool => byte;
+    };
+};
+
+dec main = ! -> byte;
+def main = {
+    ret 0;
+};
