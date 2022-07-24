@@ -1,4 +1,5 @@
 use clap::Parser;
+use lexer::Lexer;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -20,4 +21,5 @@ fn main() {
         file.read_to_string(&mut contents).unwrap();
         contents
     };
+    let tokens = Lexer::new(contents).run();
 }
