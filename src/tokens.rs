@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub enum Tokens {
     Bang,
     Equal,
@@ -14,6 +15,7 @@ pub enum Tokens {
     Ident,
 }
 
+#[derive(Clone)]
 pub struct TokensStruct {
     pub token: Tokens,
     pub char: char,
