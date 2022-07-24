@@ -35,7 +35,7 @@ impl Into<Tokens> for String {
     fn into(self) -> Tokens {
         match self.as_str() {
             "!" => Tokens::Bang,
-            "}" | "{" | "] | "[" | ")" | "(" => Tokens::Delimiter,
+            "}" | "{" | "]" | "[" | ")" | "(" => Tokens::Delimiter,
             " " => Tokens::Space,
             "+" => Tokens::Add,
             "*" => Tokens::Multiply,
