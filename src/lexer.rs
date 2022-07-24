@@ -16,7 +16,8 @@ impl Lexer {
             tokens: vec![],
         }
     }
-    pub fn run(&mut self) -> Vec<TokensStruct> {
+    /// Runs the first pass of the Lexer
+    pub fn first_pass(&mut self) {
         for x in self.input.chars() {
             let tok: Tokens = x.to_string().into();
             match tok {
@@ -35,6 +36,15 @@ impl Lexer {
                 }
             }
         }
+    }
+    /// Runs a second pass of the Lexer
+    pub fn second_pass(&mut self) {
+        let tokens_clone = self.tokens.clone();
+        for x in tokens_clone {}
+    }
+    /// Runs the Lexer
+    pub fn run(&mut self) -> Vec<TokensStruct> {
+        self.first_pass();
         todo!();
     }
 }
