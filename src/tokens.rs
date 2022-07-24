@@ -10,6 +10,7 @@ pub enum Tokens {
     SemiColon,
     Colon,
     Space,
+    NewLine,
     Ident,
 }
 
@@ -42,6 +43,7 @@ impl Into<Tokens> for String {
             "-" => Tokens::Subtract,
             ";" => Tokens::SemiColon,
             ":" => Tokens::Colon,
+            "\n" => Tokens::NewLine,
             _ => Tokens::Ident,
         }
     }
