@@ -53,6 +53,7 @@ impl Into<Tokens> for String {
 
 pub trait SameVecType {
     fn same_type(self) -> bool;
+    fn same_type_skip(self, skips: usize) -> bool;
 }
 
 impl SameVecType for Vec<TokensStruct> {
@@ -60,6 +61,23 @@ impl SameVecType for Vec<TokensStruct> {
         let mut last_item = self[0].clone();
         let mut result = true;
         let _ = self.iter().map(move |f| {
+            let cloned = f.clone();
+            if last_item != f.clone() {
+                let res_ref = &mut result;
+                *res_ref = false;
+            }
+            last_item = cloned;
+        });
+        return result;
+    }
+    fn same_type_skip(self, skips: usize) -> bool {
+        let mut last_item = self[0].clone();
+        let mut result = true;
+        let mut self_iter = self.iter();
+        for _ in 0..skips {
+            self_iter.next();
+        }
+        let _ = self_iter.map(move |f| {
             let cloned = f.clone();
             if last_item != f.clone() {
                 let res_ref = &mut result;
