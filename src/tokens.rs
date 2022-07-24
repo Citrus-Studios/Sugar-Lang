@@ -57,14 +57,15 @@ pub trait SameVecType {
 
 impl SameVecType for Vec<TokensStruct> {
     fn same_type(self) -> bool {
-        let last_item = self[0];
+        let mut last_item = self[0].clone();
         let mut result = true;
         let _ = self.iter().map(move |f| {
-            if last_item != *f {
-                result = false;
+            let cloned = f.clone();
+            if last_item != f.clone() {
+                let res_ref = &mut result;
+                *res_ref = false;
             }
-            last_item = f;
-            true
+            last_item = cloned;
         });
         return result;
     }
