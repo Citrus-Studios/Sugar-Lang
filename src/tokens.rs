@@ -15,10 +15,10 @@ pub enum Tokens {
 }
 
 pub struct TokensStruct {
-    token: Tokens,
-    char: char,
-    line: u128,
-    char_pos: u128,
+    pub token: Tokens,
+    pub char: char,
+    pub line: u128,
+    pub char_pos: u128,
 }
 
 impl TokensStruct {
