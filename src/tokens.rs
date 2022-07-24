@@ -50,3 +50,22 @@ impl Into<Tokens> for String {
         }
     }
 }
+
+pub trait SameVecType {
+    fn same_type(self) -> bool;
+}
+
+impl SameVecType for Vec<TokensStruct> {
+    fn same_type(self) -> bool {
+        let last_item = self[0];
+        let mut result = true;
+        let _ = self.iter().map(move |f| {
+            if last_item != *f {
+                result = false;
+            }
+            last_item = f;
+            true
+        });
+        return result;
+    }
+}
