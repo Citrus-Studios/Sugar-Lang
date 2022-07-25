@@ -33,6 +33,7 @@ impl Lexer {
                         char_pos: self.char_pos,
                     };
                     self.tokens.push(tok_struct);
+                    self.char_pos += 1;
                 }
             }
         }
