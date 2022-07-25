@@ -56,7 +56,7 @@ pub trait SameVecType {
     fn same_type_skip(&self, skips: usize) -> bool;
 }
 
-impl SameVecType for Vec<Tokens> {
+impl SameVecType for Vec<TokensStruct> {
     fn same_type(&self) -> bool {
         let mut last_item = self[0].clone();
         let mut result = true;
