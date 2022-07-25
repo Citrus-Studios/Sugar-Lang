@@ -28,7 +28,7 @@ impl Lexer {
                 _ => {
                     let tok_struct = TokensStruct {
                         token: tok,
-                        char: x,
+                        string: x.to_string(),
                         line: self.line,
                         char_pos: self.char_pos,
                     };

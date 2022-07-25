@@ -18,16 +18,16 @@ pub enum Tokens {
 #[derive(Debug, Clone, PartialEq)]
 pub struct TokensStruct {
     pub token: Tokens,
-    pub char: char,
+    pub string: String,
     pub line: u128,
     pub char_pos: u128,
 }
 
 impl TokensStruct {
-    pub fn new(token: Tokens, char: char, line: u128, char_pos: u128) -> Self {
+    pub fn new(token: Tokens, string: String, line: u128, char_pos: u128) -> Self {
         Self {
             token,
-            char,
+            string,
             line,
             char_pos,
         }
