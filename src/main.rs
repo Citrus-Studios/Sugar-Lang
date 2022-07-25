@@ -22,4 +22,5 @@ fn main() {
         contents
     };
     let tokens = Lexer::new(contents).run();
+    println!("{:#?}", tokens);
 }
