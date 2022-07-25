@@ -88,3 +88,29 @@ impl SameVecType for Vec<TokensStruct> {
         return result;
     }
 }
+
+pub trait CollectCharStrings {
+    fn collect_strings(self) -> String;
+    fn collect_strings_skip(self, skips: usize) -> String;
+}
+
+impl CollectCharStrings for Vec<TokensStruct> {
+    fn collect_strings(self) -> String {
+        let mut collected = String::new();
+        self.iter().map(|x| {
+            collected.push_str(x.string.as_str());
+        });
+        collected
+    }
+    fn collect_strings_skip(self, skips: usize) -> String {
+        let mut collected = String::new();
+        let mut self_iter = self.iter();
+        for _ in 0..skips {
+            self_iter.next();
+        }
+        self_iter.map(|x| {
+            collected.push_str(x.string.as_str());
+        });
+        collected
+    }
+}
