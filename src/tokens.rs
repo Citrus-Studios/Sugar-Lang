@@ -1,4 +1,4 @@
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Tokens {
     Bang,
     Equal,
@@ -15,7 +15,7 @@ pub enum Tokens {
     Ident,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TokensStruct {
     pub token: Tokens,
     pub char: char,
@@ -52,12 +52,12 @@ impl Into<Tokens> for String {
 }
 
 pub trait SameVecType {
-    fn same_type(self) -> bool;
-    fn same_type_skip(self, skips: usize) -> bool;
+    fn same_type(&self) -> bool;
+    fn same_type_skip(&self, skips: usize) -> bool;
 }
 
-impl SameVecType for Vec<TokensStruct> {
-    fn same_type(self) -> bool {
+impl SameVecType for Vec<Tokens> {
+    fn same_type(&self) -> bool {
         let mut last_item = self[0].clone();
         let mut result = true;
         let _ = self.iter().map(move |f| {
@@ -70,7 +70,7 @@ impl SameVecType for Vec<TokensStruct> {
         });
         return result;
     }
-    fn same_type_skip(self, skips: usize) -> bool {
+    fn same_type_skip(&self, skips: usize) -> bool {
         let mut last_item = self[0].clone();
         let mut result = true;
         let mut self_iter = self.iter();
