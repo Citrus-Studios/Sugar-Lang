@@ -1,4 +1,4 @@
-use crate::tokens::{CollectCharStrings, SameVecType, Tokens, TokensStruct};
+use crate::tokens::{Tokens, TokensStruct};
 
 pub struct Lexer {
     input: String,
@@ -44,25 +44,30 @@ impl Lexer {
         self.tokens.clear();
         let mut ident_mode = false;
         let mut ident_cache = String::new();
+        let mut last_x = None;
         for (_i, x) in tokens_clone.iter().enumerate() {
             match x.token {
                 Tokens::Ident => {
                     ident_mode = true;
                     ident_cache.push_str(x.string.as_str());
+                    last_x = Some(x.clone());
                 }
                 _ => {
                     if ident_mode {
+                        let last_x_unwrapped = last_x.clone().unwrap();
                         self.tokens.push(TokensStruct {
-                            token: x.clone().token,
+                            token: last_x_unwrapped.clone().token,
                             string: ident_cache,
-                            char_pos: x.char_pos,
-                            line: x.line,
+                            char_pos: last_x_unwrapped.char_pos,
+                            line: last_x_unwrapped.line,
                         });
                         ident_cache = String::new();
                         ident_mode = false;
-                    } else if x.token != Tokens::Space {
+                    }
+                    if x.token != Tokens::Space {
                         self.tokens.push(x.clone());
                     }
+                    last_x = Some(x.clone());
                 }
             }
         }
