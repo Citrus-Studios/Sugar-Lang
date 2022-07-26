@@ -12,9 +12,9 @@ pub enum AST {
 }
 
 pub struct ASTStruct {
-    ast: AST,
-    char_pos: u128,
-    line: u128,
+    pub ast: AST,
+    pub char_pos: u128,
+    pub line: u128,
 }
 
 pub enum Symbol {
