@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 #[derive(Clone)]
 pub enum AST {
     Block {
@@ -36,14 +34,10 @@ pub enum Symbol {
 }
 
 impl ASTStruct {
-    pub fn get_block<'a>(
-        self: Rc<Self>,
-    ) -> Result<(&'a mut usize, &'a mut Vec<ASTStruct>), String> {
-        match self.clone().ast {
-            AST::Block {
-                mut scope,
-                mut contents,
-            } => Ok((&mut scope, &mut contents)),
+    pub fn get_block<'a>(&'a mut self) -> Result<(&'a mut usize, &'a mut Vec<ASTStruct>), String> {
+        let ast: &'a mut AST = &mut self.ast;
+        match ast {
+            AST::Block { scope, contents } => Ok((scope, contents)),
             _ => Err("Couldn't get block".to_string()),
         }
     }
