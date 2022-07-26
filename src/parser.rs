@@ -28,18 +28,22 @@ impl Parser {
         let mut last_token: Option<TokensStruct> = None;
         for x in self.tokens.clone() {
             info!("CurTokens: {:#?} {:#?}", x, last_token);
-            if match last_token {
-                // Check if it's an arrow
-                Some(v) => v.token == Tokens::Subtract && x.token == Tokens::Greater,
-                None => false,
-            } {
-                info!("Arrow ran!");
-                let block = ASTStruct::get_block(&mut self.syntax_tree).unwrap();
-                block.1.push(ASTStruct {
-                    ast: AST::Symbol(Symbol::Arrow),
-                    line: x.line,
-                    char_pos: x.char_pos,
-                });
+            match last_token {
+                Some(v) => {
+                    let y = v.token.clone();
+                    let z = x.token.clone();
+                    if y == Tokens::Subtract && z == Tokens::Greater {
+                        info!("Arrow ran!");
+                        let block = ASTStruct::get_block(&mut self.syntax_tree).unwrap();
+                        block.1.push(ASTStruct {
+                            ast: AST::Symbol(Symbol::Arrow),
+                            line: x.line,
+                            char_pos: x.char_pos,
+                        });
+                    }
+                    if y == Tokens::Equal && z != Tokens::Equal {}
+                }
+                None => {}
             }
             last_token = Some(x.clone());
         }
