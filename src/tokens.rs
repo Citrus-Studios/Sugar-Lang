@@ -49,6 +49,7 @@ impl Into<Tokens> for String {
             ";" => Tokens::SemiColon,
             ":" => Tokens::Colon,
             "\n" => Tokens::NewLine,
+            "=" => Tokens::Equal,
             ">" => Tokens::Greater,
             "<" => Tokens::Less,
             _ => Tokens::Ident,
