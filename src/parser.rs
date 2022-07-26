@@ -1,5 +1,7 @@
+use std::rc::Rc;
+
 use crate::{
-    ast::{ASTStruct, AST},
+    ast::{ASTStruct, Symbol, AST},
     tokens::{Tokens, TokensStruct},
 };
 
@@ -22,15 +24,24 @@ impl Parser {
             },
         }
     }
-    pub fn run(&mut self) {
+    pub fn run(self) -> Rc<ASTStruct> {
+        let syntax_tree_rc = Rc::new(self.syntax_tree);
         let mut last_token: Option<TokensStruct> = None;
         for x in self.tokens.clone() {
             if match last_token {
                 // Check if it's an arrow
                 Some(v) => v.token == Tokens::Minus && x.token == Tokens::Greater,
                 None => false,
-            } {}
+            } {
+                let block = ASTStruct::get_block(syntax_tree_rc.clone()).unwrap();
+                block.1.push(ASTStruct {
+                    ast: AST::Symbol(Symbol::Arrow),
+                    line: x.line,
+                    char_pos: x.char_pos,
+                });
+            }
             last_token = Some(x.clone());
         }
+        return syntax_tree_rc;
     }
 }
