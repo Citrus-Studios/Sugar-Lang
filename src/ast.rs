@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub enum AST {
     Block {
         scope: usize,
@@ -11,12 +12,14 @@ pub enum AST {
     Symbol(Symbol),
 }
 
+#[derive(Clone)]
 pub struct ASTStruct {
     pub ast: AST,
     pub char_pos: u128,
     pub line: u128,
 }
 
+#[derive(Clone)]
 pub enum Symbol {
     Equal,
     Less,
@@ -31,10 +34,18 @@ pub enum Symbol {
 }
 
 impl ASTStruct {
-    pub fn get_block(&mut self) -> Result<(&mut usize, &mut Vec<ASTStruct>), String> {
+    pub fn get_block<'a>(
+        self,
+    ) -> (
+        Self,
+        Result<(&'a mut usize, &'a mut Vec<ASTStruct>), String>,
+    ) {
         match self.ast {
-            AST::Block { scope, contents } => Ok((&mut scope, &mut contents)),
-            _ => Err("Couldn't get block".to_string()),
+            AST::Block {
+                mut scope,
+                mut contents,
+            } => (self, Ok((&mut scope, &mut contents))),
+            _ => (self, Err("Couldn't get block".to_string())),
         }
     }
 }
