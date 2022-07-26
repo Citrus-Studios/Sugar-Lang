@@ -26,6 +26,7 @@ impl Parser {
         let mut last_token: Option<TokensStruct> = None;
         for x in self.tokens.clone() {
             if match last_token {
+                // Check if it's an arrow
                 Some(v) => v.token == Tokens::Minus && x.token == Tokens::Greater,
                 None => false,
             } {}
