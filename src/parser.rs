@@ -50,6 +50,14 @@ impl Parser {
                             char_pos: x.char_pos,
                         });
                     }
+                    if y == Tokens::Equal && z == Tokens::Equal {
+                        info!("Equality ran!");
+                        block.1.push(ASTStruct {
+                            ast: AST::Symbol(Symbol::Equality),
+                            line: x.line,
+                            char_pos: x.char_pos,
+                        });
+                    }
                 }
                 None => {}
             }
