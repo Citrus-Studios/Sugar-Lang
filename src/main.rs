@@ -3,6 +3,8 @@ use lexer::Lexer;
 use parser::Parser;
 use std::fs::File;
 use std::io::prelude::*;
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 
 mod ast;
 mod lexer;
@@ -17,6 +19,12 @@ struct Args {
 }
 
 fn main() {
+    // Subscriber Stuff
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("Failed Setting Global Subscriber");
+
     let args = Args::parse();
     let contents = {
         let mut file = File::open(args.file.as_str()).unwrap();
@@ -25,7 +33,7 @@ fn main() {
         contents
     };
     let tokens = Lexer::new(contents).run();
-    println!("Lexer: {:#?}", tokens);
+    info!("Lexer: {:#?}", tokens);
     let ast = Parser::new(tokens).run();
-    println!("AST: {:#?}", ast);
+    info!("AST: {:#?}", ast);
 }
