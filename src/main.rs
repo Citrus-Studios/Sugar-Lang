@@ -1,12 +1,15 @@
-use clap::Parser;
+use clap::Parser as ClapParser;
 use lexer::Lexer;
+use parser::Parser;
 use std::fs::File;
 use std::io::prelude::*;
 
+mod ast;
 mod lexer;
+mod parser;
 mod tokens;
 
-#[derive(Parser, Debug)]
+#[derive(ClapParser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
     #[clap(short, long, default_value = "main.sug")]
@@ -23,4 +26,5 @@ fn main() {
     };
     let tokens = Lexer::new(contents).run();
     println!("{:#?}", tokens);
+    let ast = Parser::new(tokens).run();
 }
