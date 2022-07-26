@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum AST {
     Block {
         scope: usize,
@@ -12,14 +12,14 @@ pub enum AST {
     Symbol(Symbol),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ASTStruct {
     pub ast: AST,
     pub char_pos: u128,
     pub line: u128,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Symbol {
     Equal,
     Less,
