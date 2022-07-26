@@ -1,9 +1,9 @@
-use std::{rc::Rc, sync::RwLock};
-
 use crate::{
     ast::{ASTStruct, Symbol, AST},
     tokens::{Tokens, TokensStruct},
 };
+
+use tracing::info;
 
 pub struct Parser {
     tokens: Vec<TokensStruct>,
@@ -27,11 +27,13 @@ impl Parser {
     pub fn run(mut self) -> ASTStruct {
         let mut last_token: Option<TokensStruct> = None;
         for x in self.tokens.clone() {
+            info!("CurTokens: {:#?} {:#?}", x, last_token);
             if match last_token {
                 // Check if it's an arrow
                 Some(v) => v.token == Tokens::Minus && x.token == Tokens::Greater,
                 None => false,
             } {
+                info!("Arrow ran!");
                 let block = ASTStruct::get_block(&mut self.syntax_tree).unwrap();
                 block.1.push(ASTStruct {
                     ast: AST::Symbol(Symbol::Arrow),
