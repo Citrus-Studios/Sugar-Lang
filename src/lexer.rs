@@ -5,6 +5,7 @@ pub struct Lexer {
     line: u128,
     char_pos: u128,
     tokens: Vec<TokensStruct>,
+    scope: usize,
 }
 
 impl Lexer {
@@ -14,6 +15,7 @@ impl Lexer {
             line: 1,
             char_pos: 1,
             tokens: vec![],
+            scope: 0,
         }
     }
     /// Runs the first pass of the Lexer
@@ -31,6 +33,7 @@ impl Lexer {
                         string: x.to_string(),
                         line: self.line,
                         char_pos: self.char_pos,
+                        scope: 0,
                     };
                     self.tokens.push(tok_struct);
                     self.char_pos += 1;
@@ -60,12 +63,26 @@ impl Lexer {
                             string: ident_cache,
                             char_pos: last_x_unwrapped.char_pos,
                             line: last_x_unwrapped.line,
+                            scope: self.scope,
                         });
                         ident_cache = String::new();
                         ident_mode = false;
                     }
-                    if x.token != Tokens::Space {
-                        self.tokens.push(x.clone());
+                    if x.token != Tokens::Space && x.token != Tokens::Delimiter {
+                        self.tokens.push(TokensStruct {
+                            token: x.token.clone(),
+                            string: x.string.clone(),
+                            line: x.line,
+                            char_pos: x.char_pos,
+                            scope: self.scope,
+                        });
+                    }
+                    if x.token == Tokens::Delimiter {
+                        match x.string.as_str() {
+                            "{" | "[" | "(" => self.scope += 1,
+                            "}" | "]" | ")" => self.scope -= 1,
+                            _ => {}
+                        }
                     }
                     last_x = Some(x.clone());
                 }
