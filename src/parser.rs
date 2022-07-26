@@ -79,6 +79,15 @@ impl Parser {
                             char_pos: x.char_pos,
                         });
                     }
+                    // dec
+                    if z == Tokens::Ident && x.string.as_str() == "dec" {
+                        info!("Declare ran!");
+                        block.1.push(ASTStruct {
+                            ast: AST::Declare,
+                            line: x.line,
+                            char_pos: x.char_pos,
+                        });
+                    }
                 }
                 None => {}
             }
