@@ -9,6 +9,7 @@ pub enum AST {
     Define,
     Declare,
     Type(String),
+    Name(String),
     Symbol(Symbol),
 }
 
