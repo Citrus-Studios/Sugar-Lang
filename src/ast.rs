@@ -1,6 +1,6 @@
-pub enum AST<T> {
+pub enum AST {
     Block { scope: usize, contents: Vec<AST<T>> },
-    Literal(T),
+    Byte(u8),
     Return,
     Define,
     Declare,
@@ -8,8 +8,8 @@ pub enum AST<T> {
     Symbol(Symbol),
 }
 
-pub struct ASTStruct<T> {
-    ast: AST<T>,
+pub struct ASTStruct {
+    ast: AST,
     char_pos: u128,
     line: u128,
 }
