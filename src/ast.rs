@@ -26,6 +26,7 @@ pub enum Symbol {
     LessEqual,
     Greater,
     GreaterEqual,
+    InEquality,
     Equality,
     Bang,
     Arrow,
