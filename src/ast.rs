@@ -31,9 +31,9 @@ pub enum Symbol {
 }
 
 impl ASTStruct {
-    pub fn get_block(&mut self) -> Result<&mut AST, String> {
+    pub fn get_block(&mut self) -> Result<(&mut usize, &mut Vec<ASTStruct>), String> {
         match self.ast {
-            AST::Block { .. } => Ok(&mut self.ast),
+            AST::Block { scope, contents } => Ok((&mut scope, &mut contents)),
             _ => Err("Couldn't get block".to_string()),
         }
     }
