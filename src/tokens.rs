@@ -2,7 +2,6 @@
 pub enum Tokens {
     Bang,
     Equal,
-    Minus,
     Add,
     Multiply,
     Subtract,

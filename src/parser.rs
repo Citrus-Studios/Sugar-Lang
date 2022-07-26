@@ -30,7 +30,7 @@ impl Parser {
             info!("CurTokens: {:#?} {:#?}", x, last_token);
             if match last_token {
                 // Check if it's an arrow
-                Some(v) => v.token == Tokens::Minus && x.token == Tokens::Greater,
+                Some(v) => v.token == Tokens::Subtract && x.token == Tokens::Greater,
                 None => false,
             } {
                 info!("Arrow ran!");
