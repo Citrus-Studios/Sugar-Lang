@@ -1,5 +1,8 @@
 pub enum AST {
-    Block { scope: usize, contents: Vec<AST<T>> },
+    Block {
+        scope: usize,
+        contents: Vec<ASTStruct>,
+    },
     Byte(u8),
     Return,
     Define,
