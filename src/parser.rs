@@ -26,22 +26,30 @@ impl Parser {
     }
     pub fn run(mut self) -> ASTStruct {
         let mut last_token: Option<TokensStruct> = None;
+        let block = ASTStruct::get_block(&mut self.syntax_tree).unwrap();
         for x in self.tokens.clone() {
-            info!("CurTokens: {:#?} {:#?}", x, last_token);
+            // info!("CurTokens: {:#?} {:#?}", x, last_token);
             match last_token {
                 Some(v) => {
                     let y = v.token.clone();
                     let z = x.token.clone();
+                    info!("{y:#?}, {z:#?}");
                     if y == Tokens::Subtract && z == Tokens::Greater {
                         info!("Arrow ran!");
-                        let block = ASTStruct::get_block(&mut self.syntax_tree).unwrap();
                         block.1.push(ASTStruct {
                             ast: AST::Symbol(Symbol::Arrow),
                             line: x.line,
                             char_pos: x.char_pos,
                         });
                     }
-                    if y == Tokens::Equal && z != Tokens::Equal {}
+                    if y == Tokens::Equal && z != Tokens::Equal {
+                        info!("Equal ran!");
+                        block.1.push(ASTStruct {
+                            ast: AST::Symbol(Symbol::Equal),
+                            line: x.line,
+                            char_pos: x.char_pos,
+                        });
+                    }
                 }
                 None => {}
             }
