@@ -34,6 +34,7 @@ impl Parser {
                     let y = v.token.clone();
                     let z = x.token.clone();
                     info!("{y:#?}, {z:#?}");
+                    // ->
                     if y == Tokens::Subtract && z == Tokens::Greater {
                         info!("Arrow ran!");
                         block.1.push(ASTStruct {
@@ -42,6 +43,7 @@ impl Parser {
                             char_pos: x.char_pos,
                         });
                     }
+                    // =
                     if y == Tokens::Equal && z != Tokens::Equal {
                         info!("Equal ran!");
                         block.1.push(ASTStruct {
@@ -50,10 +52,29 @@ impl Parser {
                             char_pos: x.char_pos,
                         });
                     }
+                    // ==
                     if y == Tokens::Equal && z == Tokens::Equal {
                         info!("Equality ran!");
                         block.1.push(ASTStruct {
                             ast: AST::Symbol(Symbol::Equality),
+                            line: x.line,
+                            char_pos: x.char_pos,
+                        });
+                    }
+                    // !
+                    if y == Tokens::Bang && z != Tokens::Equal {
+                        info!("Bang ran!");
+                        block.1.push(ASTStruct {
+                            ast: AST::Symbol(Symbol::Bang),
+                            line: x.line,
+                            char_pos: x.char_pos,
+                        });
+                    }
+                    // !=
+                    if y == Tokens::Bang && z == Tokens::Equal {
+                        info!("InEquality ran!");
+                        block.1.push(ASTStruct {
+                            ast: AST::Symbol(Symbol::InEquality),
                             line: x.line,
                             char_pos: x.char_pos,
                         });
