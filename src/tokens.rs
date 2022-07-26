@@ -23,15 +23,17 @@ pub struct TokensStruct {
     pub string: String,
     pub line: u128,
     pub char_pos: u128,
+    pub scope: usize,
 }
 
 impl TokensStruct {
-    pub fn new(token: Tokens, string: String, line: u128, char_pos: u128) -> Self {
+    pub fn new(token: Tokens, string: String, line: u128, char_pos: u128, scope: usize) -> Self {
         Self {
             token,
             string,
             line,
             char_pos,
+            scope,
         }
     }
 }
