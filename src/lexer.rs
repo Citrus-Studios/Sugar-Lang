@@ -68,7 +68,7 @@ impl Lexer {
                         ident_cache = String::new();
                         ident_mode = false;
                     }
-                    if x.token != Tokens::Space && x.token != Tokens::Delimiter {
+                    if x.token != Tokens::Space {
                         self.tokens.push(TokensStruct {
                             token: x.token.clone(),
                             string: x.string.clone(),
