@@ -29,3 +29,12 @@ pub enum Symbol {
     SemiColon,
     Colon,
 }
+
+impl ASTStruct {
+    pub fn get_block(&mut self) -> Result<&mut AST, String> {
+        match self.ast {
+            AST::Block { .. } => Ok(&mut self.ast),
+            _ => Err("Couldn't get block".to_string()),
+        }
+    }
+}
