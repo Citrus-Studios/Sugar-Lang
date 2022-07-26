@@ -34,6 +34,7 @@ impl Parser {
                     let y = v.token.clone();
                     let z = x.token.clone();
                     info!("{y:#?}, {z:#?}");
+                    info!("{}, {}", v.string, x.string);
                     // ->
                     if y == Tokens::Subtract && z == Tokens::Greater {
                         info!("Arrow ran!");
@@ -80,7 +81,7 @@ impl Parser {
                         });
                     }
                     // dec
-                    if z == Tokens::Ident && x.string.as_str() == "dec" {
+                    if y == Tokens::Ident && v.string.as_str() == "dec" {
                         info!("Declare ran!");
                         block.1.push(ASTStruct {
                             ast: AST::Declare,
