@@ -1,11 +1,11 @@
 dec main = ! -> byte;
 def main = {
-    ret 0;
+    ret mommy 7;
 };
 
-def mommy = ! -> byte;
-def mommy = {
-	if 10 == 10 {
+def mommy = byte -> byte;
+def mommy x = {
+	if x == 10 {
 		ret 1;
 	};
 	ret 0;
