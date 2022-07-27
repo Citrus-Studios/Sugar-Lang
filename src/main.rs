@@ -1,3 +1,4 @@
+use crate::codegen::CodeGen;
 use clap::Parser as ClapParser;
 use lexer::Lexer;
 use parser::Parser;
@@ -10,6 +11,7 @@ mod ast;
 mod codegen;
 mod lexer;
 mod parser;
+mod rid;
 mod tokens;
 
 #[derive(ClapParser, Debug)]
