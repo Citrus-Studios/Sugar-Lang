@@ -2,3 +2,11 @@ dec main = ! -> byte;
 def main = {
     ret 0;
 };
+
+def mommy = ! -> byte;
+def mommy = {
+	if 10 == 10 {
+		ret 1;
+	};
+	ret 0;
+};
