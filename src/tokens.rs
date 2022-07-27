@@ -42,7 +42,7 @@ impl Into<Tokens> for String {
         match self.as_str() {
             "!" => Tokens::Bang,
             "}" | "{" | "]" | "[" | ")" | "(" => Tokens::Delimiter,
-            " " => Tokens::Space,
+            " " | "\t" => Tokens::Space,
             "+" => Tokens::Add,
             "*" => Tokens::Multiply,
             "-" => Tokens::Subtract,
