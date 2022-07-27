@@ -151,6 +151,21 @@ impl Parser {
                         matched = true;
                     }
 
+                    // Number
+                    if y == Tokens::Ident
+                        && v.string
+                            .chars()
+                            .any(|x| x.to_string().parse::<u8>().is_ok())
+                    {
+                        info!("Number Matched");
+                        block.1.push(ASTStruct {
+                            ast: AST::Byte(v.string.parse::<u8>().expect("That is not a byte")),
+                            line: v.line,
+                            char_pos: v.char_pos,
+                        });
+                        matched = true;
+                    }
+
                     // Misc Names
                     if !matched && y == Tokens::Ident {
                         info!("Name Matched");
