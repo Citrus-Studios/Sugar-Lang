@@ -7,6 +7,7 @@ use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 mod ast;
+mod codegen;
 mod lexer;
 mod parser;
 mod tokens;
@@ -36,4 +37,5 @@ fn main() {
     info!("Lexer: {:#?}", tokens);
     let ast = Parser::new(tokens).run();
     info!("AST: {:#?}", ast);
+    let codegen = CodeGen::new(ast).run();
 }
