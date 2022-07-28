@@ -1,10 +1,7 @@
 use crate::ast::{ASTStruct, Symbol};
 
 pub enum RID<'a> {
-    Block {
-        scope: usize,
-        contents: Vec<RIDData<'a>>,
-    },
+    Block { contents: Vec<RIDData<'a>> },
     Byte(u8),
     Arg(RIDData<'a>),
     Function(String, Vec<RIDData<'a>>, RIDData<'a>),
