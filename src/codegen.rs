@@ -8,7 +8,7 @@ impl CodeGen {
     pub fn new(ast: ASTStruct) -> Self {
         Self { ast }
     }
-    pub fn run(mut self) {
-        todo!();
+    pub fn run(mut self) -> Result<(), String> {
+        Ok(())
     }
 }
