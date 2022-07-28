@@ -23,11 +23,12 @@ pub struct RIDData<'a> {
     char_pos: usize,
 }
 
-pub struct RIDStruct {
+pub struct RIDStruct<'a> {
     ast: ASTStruct,
+    rid: RIDData<'a>,
 }
 
-impl RIDStruct {
+impl<'a> RIDStruct<'a> {
     pub fn new(ast: ASTStruct) -> Self {
         Self { ast }
     }
