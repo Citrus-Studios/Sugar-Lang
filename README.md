@@ -1,2 +1,2 @@
 # Sugar-Lang
-A language desinged around completely customized.
+A language desinged around being completely customizable.
