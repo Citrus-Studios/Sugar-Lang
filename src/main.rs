@@ -1,4 +1,7 @@
+#![feature(let_chains)]
+
 use crate::codegen::CodeGen;
+use crate::rid::RIDStruct;
 use clap::Parser as ClapParser;
 use lexer::Lexer;
 use parser::Parser;
@@ -39,5 +42,7 @@ fn main() {
     info!("Lexer: {:#?}", tokens);
     let ast = Parser::new(tokens).run();
     info!("AST: {:#?}", ast);
-    let codegen = CodeGen::new(ast).run();
+    let rid = RIDStruct::new(ast).run();
+    info!("RID: {:#?}", rid);
+    let codegen = CodeGen::new(rid).run();
 }

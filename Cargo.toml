@@ -8,6 +8,6 @@ authors = ["lemonjamesd lemonjamesd@github"]
 
 [dependencies]
 clap = { version = "3.2.12", features = ["derive"] }
-inkwell = "0.0.0"
+llvm-sys = "140.0.2"
 tracing = { version = "0.1.35", features = ["attributes"] }
 tracing-subscriber = "0.3.15"

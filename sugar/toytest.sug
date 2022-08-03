@@ -1,0 +1,4 @@
+def cool = {
+	def mommy = ret 1;
+	ret 10;
+};

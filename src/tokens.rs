@@ -14,19 +14,20 @@ pub enum Tokens {
     Greater,
     Less,
     Ident,
+    Null,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct TokensStruct {
     pub token: Tokens,
     pub string: String,
-    pub line: u128,
-    pub char_pos: u128,
+    pub line: usize,
+    pub char_pos: usize,
     pub scope: usize,
 }
 
 impl TokensStruct {
-    pub fn new(token: Tokens, string: String, line: u128, char_pos: u128, scope: usize) -> Self {
+    pub fn new(token: Tokens, string: String, line: usize, char_pos: usize, scope: usize) -> Self {
         Self {
             token,
             string,

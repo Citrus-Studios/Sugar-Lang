@@ -1,9 +1,8 @@
-#[derive(Debug, Clone)]
+use core::fmt;
+use std::fmt::Debug;
+
+#[derive(PartialEq, Clone)]
 pub enum AST {
-    Block {
-        scope: usize,
-        contents: Vec<ASTStruct>,
-    },
     Byte(u8),
     Return,
     Define,
@@ -13,14 +12,46 @@ pub enum AST {
     Symbol(Symbol),
 }
 
-#[derive(Debug, Clone)]
-pub struct ASTStruct {
-    pub ast: AST,
-    pub char_pos: u128,
-    pub line: u128,
+impl Debug for AST {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                AST::Byte(x) => format!("Byte: {x}"),
+                AST::Return => "Return".to_string(),
+                AST::Define => "Define".to_string(),
+                AST::Declare => "Declare".to_string(),
+                AST::Type(x) => format!("Type: {x}"),
+                AST::Name(x) => format!("Name: {x}"),
+                AST::Symbol(x) => format!("Symbol: {x:?}"),
+            }
+        )
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+pub struct ASTStruct {
+    pub ast: AST,
+    pub scope: usize,
+    pub char_pos: usize,
+    pub line: usize,
+}
+
+impl Debug for ASTStruct {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+        let tabs = (0..self.scope)
+            .map(|_| "↳  ".to_string())
+            .collect::<String>();
+        write!(
+            f,
+            "{}{:#?} | {}C {}L",
+            tabs, self.ast, self.char_pos, self.line
+        )
+    }
+}
+
+#[derive(PartialEq, Debug, Clone)]
 pub enum Symbol {
     Equal,
     Less,
@@ -33,14 +64,4 @@ pub enum Symbol {
     Arrow,
     SemiColon,
     Colon,
-}
-
-impl ASTStruct {
-    pub fn get_block<'a>(&'a mut self) -> Result<(&'a mut usize, &'a mut Vec<ASTStruct>), String> {
-        let ast: &'a mut AST = &mut self.ast;
-        match ast {
-            AST::Block { scope, contents } => Ok((scope, contents)),
-            _ => Err("Couldn't get block".to_string()),
-        }
-    }
 }

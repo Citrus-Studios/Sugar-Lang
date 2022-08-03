@@ -2,8 +2,8 @@ use crate::tokens::{Tokens, TokensStruct};
 
 pub struct Lexer {
     input: String,
-    line: u128,
-    char_pos: u128,
+    line: usize,
+    char_pos: usize,
     tokens: Vec<TokensStruct>,
     scope: usize,
 }

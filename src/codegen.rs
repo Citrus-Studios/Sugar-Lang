@@ -1,12 +1,12 @@
-use crate::ast::ASTStruct;
+use crate::rid::RIDData;
 
 pub struct CodeGen {
-    ast: ASTStruct,
+    rid: Vec<RIDData>,
 }
 
 impl CodeGen {
-    pub fn new(ast: ASTStruct) -> Self {
-        Self { ast }
+    pub fn new(rid: Vec<RIDData>) -> Self {
+        Self { rid }
     }
     pub fn run(mut self) -> Result<(), String> {
         Ok(())
