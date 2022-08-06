@@ -1,14 +1,47 @@
-class Foo = {
-    prop bar = byte;
-    prop baz = byte = 10;
+sugar classes = {
+	class $name(.*)$
+		#{#
+			$props(prop $name = $type(.+);#?)*$#?
+			$either_or(
+				$decs(dec $name(.+)$ = $type(.+ $(->)?$)*$;#)*$#|
+				$defs(def $name(.+)$ => $impl(this|$(*)raw$this)$, $args(.+)*$ = {#
+					$code(.*)$
+				};#)$#
+			)*$
+		#}#
+	} = {
+		struct $name {
+			$props {
+				$$name => $$type
+			}*;|
+		};
 
-    dec add = Self -> byte -> byte;
-    def add => this, other = {
-        ret this.bar + other;
-    };
+		$either_or {
+			$$decs {
+				dec $$name = $$type;
+			}*;|
+			$$defs {
+				def $$name >> $name => $$impl, $$args = {
+					$$code
+				}
+			}*;
+		}*;
+	};
 };
 
-dec main = ! -> byte;
-def main = {
-    ret 0;
-};
+apply classes {
+	class Foo = {
+		prop bar = byte;
+		prop baz = byte = 10;
+
+		dec add = Self -> byte -> byte;
+		def add => this, other = {
+			ret this.bar + other;
+		};
+	};
+
+	dec main = ! -> byte;
+	def main = {
+		ret 0;
+	};
+}
