@@ -1,98 +1,123 @@
-use crate::tokens::{Tokens, TokensStruct};
+use plex::lexer;
 
-pub struct Lexer {
-    input: String,
-    line: usize,
-    char_pos: usize,
-    tokens: Vec<TokensStruct>,
-    scope: usize,
+#[derive(Debug, Clone)]
+pub enum Token {
+    Ident(String),
+
+    Variable,
+    Define,
+    Declare,
+    Return,
+
+    Byte(u8),
+
+    Bang,
+
+    Equals,
+    Plus,
+    Minus,
+    Star,
+    Slash,
+
+    Gt,
+    Lt,
+
+    LParen,
+    RParen,
+    LBrace,
+    RBrace,
+    LBracket,
+    RBracket,
+
+    SemiColon,
+    Colon,
+
+    Whitespace,
+    Comment,
 }
 
-impl Lexer {
-    pub fn new(input: String) -> Self {
-        Self {
-            input,
-            line: 1,
-            char_pos: 1,
-            tokens: vec![],
-            scope: 0,
+lexer! {
+    fn next_token(text: 'a) -> Token;
+
+    // "C-style" comments (/* .. */) - can't contain "*/"
+    r#"/[*](~(.*[*]/.*))[*]/"# => Token::Comment,
+    // "C++-style" comments (// ...)
+    r#"//[^\n]*"# => Token::Comment,
+
+    r#"[ \t\r\n]"# => Token::Whitespace,
+
+    r#"var"# => Token::Variable,
+
+    r#"[0-9]+"# => Token::Byte(text.parse().unwrap()),
+
+    r#"declare"# => Token::Declare,
+    r#"define"# => Token::Define,
+    r#"return"# => Token::Return,
+
+    r#"[a-zA-Z_][a-zA-Z0-9_]*"# => Token::Ident(text.to_owned()),
+
+    r#"="# => Token::Equals,
+    r#"\+"# => Token::Plus,
+    r#"-"# => Token::Minus,
+    r#"\*"# => Token::Star,
+    r#"/"# => Token::Slash,
+
+    r#">"# => Token::Gt,
+    r#"<"# => Token::Lt,
+
+    r#"\("# => Token::LParen,
+    r#"\)"# => Token::RParen,
+    r#"\["# => Token::LBracket,
+    r#"\]"# => Token::RBracket,
+    r#"\{"# => Token::LBrace,
+    r#"\}"# => Token::RBrace,
+
+    r#"\;"# => Token::SemiColon,
+    r#"\:"# => Token::Colon,
+
+    r#"!"# => Token::Bang,
+}
+
+pub struct Lexer<'a> {
+    original: &'a str,
+    remaining: &'a str,
+}
+
+impl<'a> Lexer<'a> {
+    pub fn new(s: &'a str) -> Lexer<'a> {
+        Lexer {
+            original: s,
+            remaining: s,
         }
     }
-    /// Runs the first pass of the Lexer
-    pub fn first_pass(&mut self) {
-        for x in self.input.chars() {
-            let tok: Tokens = x.to_string().into();
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Span {
+    pub lo: usize,
+    pub hi: usize,
+}
+
+impl<'a> Iterator for Lexer<'a> {
+    type Item = (Token, Span);
+    fn next(&mut self) -> Option<(Token, Span)> {
+        loop {
+            let (tok, span) = if let Some((tok, new_remaining)) = next_token(self.remaining) {
+                let lo = self.original.len() - self.remaining.len();
+                let hi = self.original.len() - new_remaining.len();
+                self.remaining = new_remaining;
+                (tok, Span { lo, hi })
+            } else {
+                return None;
+            };
             match tok {
-                Tokens::NewLine => {
-                    self.line += 1;
-                    self.char_pos = 1;
+                Token::Whitespace | Token::Comment => {
+                    continue;
                 }
-                _ => {
-                    let tok_struct = TokensStruct {
-                        token: tok,
-                        string: x.to_string(),
-                        line: self.line,
-                        char_pos: self.char_pos,
-                        scope: 0,
-                    };
-                    self.tokens.push(tok_struct);
-                    self.char_pos += 1;
+                tok => {
+                    return Some((tok, span));
                 }
             }
         }
-    }
-    /// Runs a second pass of the Lexer
-    pub fn second_pass(&mut self) {
-        let tokens_clone = self.tokens.clone();
-        self.tokens.clear();
-        let mut ident_mode = false;
-        let mut ident_cache = String::new();
-        let mut last_x = None;
-        for (_i, x) in tokens_clone.iter().enumerate() {
-            match x.token {
-                Tokens::Ident => {
-                    ident_mode = true;
-                    ident_cache.push_str(x.string.as_str());
-                    last_x = Some(x.clone());
-                }
-                _ => {
-                    if ident_mode {
-                        let last_x_unwrapped = last_x.clone().unwrap();
-                        self.tokens.push(TokensStruct {
-                            token: last_x_unwrapped.clone().token,
-                            string: ident_cache,
-                            char_pos: last_x_unwrapped.char_pos,
-                            line: last_x_unwrapped.line,
-                            scope: self.scope,
-                        });
-                        ident_cache = String::new();
-                        ident_mode = false;
-                    }
-                    if x.token != Tokens::Space {
-                        self.tokens.push(TokensStruct {
-                            token: x.token.clone(),
-                            string: x.string.clone(),
-                            line: x.line,
-                            char_pos: x.char_pos,
-                            scope: self.scope,
-                        });
-                    }
-                    if x.token == Tokens::Delimiter {
-                        match x.string.as_str() {
-                            "{" | "[" | "(" => self.scope += 1,
-                            "}" | "]" | ")" => self.scope -= 1,
-                            _ => {}
-                        }
-                    }
-                    last_x = Some(x.clone());
-                }
-            }
-        }
-    }
-    /// Runs the Lexer
-    pub fn run(&mut self) -> Vec<TokensStruct> {
-        self.first_pass();
-        self.second_pass();
-        self.tokens.clone()
     }
 }

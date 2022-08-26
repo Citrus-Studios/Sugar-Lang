@@ -1,198 +1,159 @@
-use crate::{
-    ast::{ASTStruct, Symbol, AST},
-    tokens::{Tokens, TokensStruct},
-};
+#![allow(unused_braces)]
 
-use tracing::info;
+use crate::lexer::{Span, Token};
+use crate::parser::Token::*;
 
-pub struct Parser {
-    tokens: Vec<TokensStruct>,
-    syntax_tree: Vec<ASTStruct>,
+#[derive(Debug)]
+pub struct Program {
+    pub stmts: Vec<Expr>,
 }
 
-impl Parser {
-    pub fn new(tokens: Vec<TokensStruct>) -> Self {
-        let mut tokens_clone = tokens.clone();
-        tokens_clone.push(TokensStruct {
-            token: Tokens::Null,
-            string: "".to_string(),
-            scope: 0,
-            line: 0,
-            char_pos: 0,
-        });
-        let tokens = tokens_clone;
-        Self {
-            tokens,
-            syntax_tree: vec![],
+#[derive(Debug, Clone)]
+pub struct Expr {
+    pub span: Span,
+    pub node: Expr_,
+}
+
+#[derive(Debug, Clone)]
+pub enum Expr_ {
+    Add(Box<Expr>, Box<Expr>),
+    Sub(Box<Expr>, Box<Expr>),
+    Mul(Box<Expr>, Box<Expr>),
+    Div(Box<Expr>, Box<Expr>),
+    Var(String),
+    Declare(String, Vec<String>),
+    Define(String, Vec<String>, Vec<Expr>),
+    FunctionCall(String, Vec<Expr>),
+    Assign(String, Box<Expr>),
+    Byte(u8),
+}
+
+plex::parser! {
+    fn parse_(Token, Span);
+
+    // combine two spans
+    (a, b) {
+        Span {
+            lo: a.lo,
+            hi: b.hi,
         }
     }
-    pub fn run(mut self) -> Vec<ASTStruct> {
-        let mut last_token: Option<TokensStruct> = None;
-        let mut current_scope = 0;
-        let mut equality_matched = false;
-        for x in self.tokens.clone() {
-            let mut matched = false;
-            // info!("CurTokens: {:#?} {:#?}", x, last_token);
-            match last_token {
-                Some(v) => {
-                    let y = v.token.clone();
-                    let z = x.token.clone();
-                    info!("{y:#?}, {z:#?} | {}, {}", v.string, x.string);
 
-                    if y == Tokens::Delimiter {
-                        match v.string.as_str() {
-                            "{" | "[" | "(" => current_scope += 1,
-                            "}" | "]" | ")" => current_scope -= 1,
-                            _ => {}
-                        }
-                    }
-
-                    // ->
-                    if y == Tokens::Subtract && z == Tokens::Greater {
-                        info!("Arrow ran!");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Symbol(Symbol::Arrow),
-                            line: x.line,
-                            char_pos: x.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-                    // ==
-                    if y == Tokens::Equal && z == Tokens::Equal {
-                        info!("Equality ran!");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Symbol(Symbol::Equality),
-                            line: x.line,
-                            char_pos: x.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                        equality_matched = true;
-                    }
-                    // =
-                    if y == Tokens::Equal && z != Tokens::Equal && !matched {
-                        if !equality_matched {
-                            info!("Equal ran!");
-                            self.syntax_tree.push(ASTStruct {
-                                ast: AST::Symbol(Symbol::Equal),
-                                line: x.line,
-                                char_pos: x.char_pos,
-                                scope: current_scope,
-                            });
-                            matched = true;
-                        } else {
-                            equality_matched = false;
-                        }
-                    }
-                    // !
-                    if y == Tokens::Bang && z != Tokens::Equal {
-                        info!("Bang ran!");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Symbol(Symbol::Bang),
-                            line: x.line,
-                            char_pos: x.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-                    // !=
-                    if y == Tokens::Bang && z == Tokens::Equal {
-                        info!("InEquality ran!");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Symbol(Symbol::InEquality),
-                            line: x.line,
-                            char_pos: x.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-                    // dec
-                    if y == Tokens::Ident && v.string.as_str() == "dec" {
-                        info!("Declare ran!");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Declare,
-                            line: v.line,
-                            char_pos: v.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-                    // def
-                    if y == Tokens::Ident && v.string.as_str() == "def" {
-                        info!("Declare ran!");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Define,
-                            line: v.line,
-                            char_pos: v.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-                    // byte
-                    if y == Tokens::Ident && v.string.as_str() == "byte" {
-                        info!("Matched Byte");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Type("byte".to_string()),
-                            line: v.line,
-                            char_pos: v.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-                    // ret
-                    if y == Tokens::Ident && v.string.as_str() == "ret" {
-                        info!("Return Matched");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Return,
-                            line: v.line,
-                            char_pos: v.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-                    if y == Tokens::SemiColon {
-                        info!("SemiColon Matched");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Symbol(Symbol::SemiColon),
-                            line: v.line,
-                            char_pos: v.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-
-                    // Number
-                    if y == Tokens::Ident
-                        && v.string
-                            .chars()
-                            .any(|x| x.to_string().parse::<u8>().is_ok())
-                    {
-                        info!("Number Matched");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Byte(v.string.parse::<u8>().expect("That is not a byte")),
-                            line: v.line,
-                            char_pos: v.char_pos,
-                            scope: current_scope,
-                        });
-                        matched = true;
-                    }
-
-                    // Misc Names
-                    if !matched && y == Tokens::Ident {
-                        info!("Name Matched");
-                        self.syntax_tree.push(ASTStruct {
-                            ast: AST::Name(v.string),
-                            line: v.line,
-                            char_pos: v.char_pos,
-                            scope: current_scope,
-                        });
-                    }
-                }
-                None => {}
-            }
-            last_token = Some(x.clone());
-        }
-        return self.syntax_tree.clone();
+    program: Program {
+        statements[s] => Program { stmts: s }
     }
+
+    statements: Vec<Expr> {
+        => vec![],
+        statements[mut st] outer[e] SemiColon => {
+            st.push(e);
+            st
+        }
+    }
+
+    outer: Expr {
+        Declare ident[name] Equals declare_args[args] => Expr {
+            span: span!(),
+            node: Expr_::Declare(name, args)
+        },
+        Define ident[name] define_args[args] Equals exprs[block] => Expr {
+            span: span!(),
+            node: Expr_::Define(name, args, block)
+        },
+        Define ident[name] Equals exprs[block] => Expr {
+            span: span!(),
+            node: Expr_::Define(name, vec![], block)
+        }
+    }
+
+    expr: Vec<Expr> {
+        Variable ident[name] Equals exprs[e] SemiColon expr[mut m] => {
+            let mut e = vec![Expr {
+                span: span!(),
+                node: Expr_::Assign(name, Box::new(e[0].clone()))
+            }];
+            e.append(&mut m);
+            e
+        },
+        Return ident[name] SemiColon => vec![Expr {
+            span: span!(),
+            node: Expr_::Var(name)
+        }],
+        Return expr[e] SemiColon => e,
+    }
+
+    exprs: Vec<Expr> {
+        LBrace expr[e] RBrace => e,
+        term[e] => vec![e]
+    }
+
+    term: Expr {
+        term[a] Plus fact[b] => Expr {
+            span: span!(),
+            node: Expr_::Add(Box::new(a), Box::new(b))
+        },
+        term[a] Minus fact[b] => Expr {
+            span: span!(),
+            node: Expr_::Sub(Box::new(a), Box::new(b))
+        },
+        fact[a] => a
+    }
+
+    fact: Expr {
+        fact[a] Star atom[b] => Expr {
+            span: span!(),
+            node: Expr_::Mul(Box::new(a), Box::new(b))
+        },
+        fact[a] Slash atom[b] => Expr {
+            span: span!(),
+            node: Expr_::Div(Box::new(a), Box::new(b))
+        },
+        atom[a] => a
+    }
+
+    atom: Expr {
+        ident[a] => Expr {
+            span: span!(),
+            node: Expr_::Var(a)
+        },
+        Byte(x) => Expr {
+            span: span!(),
+            node: Expr_::Byte(x)
+        },
+        LParen term[a] RParen => a
+    }
+
+    declare_args: Vec<String> {
+        ident[arg] => vec![arg],
+        Bang => vec![String::from("void")],
+        ident[arg] Minus Gt declare_args[mut second_arg] => {
+            let mut arg = vec![arg];
+            arg.append(&mut second_arg);
+            arg
+        }
+        Bang Minus Gt declare_args[mut second_arg] => {
+            let mut arg = vec![String::from("void")];
+            arg.append(&mut second_arg);
+            arg
+        }
+    }
+
+    define_args: Vec<String> {
+        ident[arg] => vec![arg],
+        ident[arg] define_args[mut second_arg] => {
+            let mut arg = vec![arg];
+            arg.append(&mut second_arg);
+            arg
+        }
+    }
+
+    ident: String {
+        Ident(a) => a
+    }
+}
+
+pub fn parse<I: Iterator<Item = (Token, Span)>>(
+    i: I,
+) -> Result<Program, (Option<(Token, Span)>, &'static str)> {
+    parse_(i)
 }

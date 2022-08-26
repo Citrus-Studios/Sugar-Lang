@@ -1,0 +1,5 @@
+declare main = ! -> byte;
+define main = {
+	var pemdas = 6 / 2 * (1 + 2);
+	return pemdas;
+};
