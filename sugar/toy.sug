@@ -1,5 +1,22 @@
+// declare inc = byte -> byte;
+// define inc x = x + 1;
+
+/* llvm_asm = {
+	
+}; */
+
 declare main = ! -> byte;
 define main = {
-	var pemdas = 6 / 2 * (1 + 2);
+	var pemdas = 5; 
+	if (pemdas % 3) == 0; {
+		mutate pemdas = 2;
+	}; else; { if (pemdas % 5) == 0; {
+		mutate pemdas = 4;
+	}; else; {
+		mutate pemdas = 6;
+	};};
+	for var pemdas_f = pemdas; pemdas != (pemdas_f + 4); mutate pemdas = pemdas + 1; { 
+		pass; 
+	};
 	return pemdas;
 };

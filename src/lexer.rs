@@ -5,6 +5,8 @@ pub enum Token {
     Ident(String),
 
     Variable,
+    Mutate,
+
     Define,
     Declare,
     Return,
@@ -18,6 +20,11 @@ pub enum Token {
     Minus,
     Star,
     Slash,
+
+    Ampersand,
+    Pipe,
+
+    Percent,
 
     Gt,
     Lt,
@@ -34,6 +41,12 @@ pub enum Token {
 
     Whitespace,
     Comment,
+
+    If,
+    Else,
+    For,
+
+    Pass,
 }
 
 lexer! {
@@ -47,12 +60,20 @@ lexer! {
     r#"[ \t\r\n]"# => Token::Whitespace,
 
     r#"var"# => Token::Variable,
+    r#"mutate"# => Token::Mutate,
 
     r#"[0-9]+"# => Token::Byte(text.parse().unwrap()),
 
     r#"declare"# => Token::Declare,
     r#"define"# => Token::Define,
     r#"return"# => Token::Return,
+
+    r#"if"# => Token::If,
+    r#"else"# => Token::Else,
+
+    r#"for"# => Token::For,
+
+    r#"pass"# => Token::Pass,
 
     r#"[a-zA-Z_][a-zA-Z0-9_]*"# => Token::Ident(text.to_owned()),
 
@@ -64,6 +85,10 @@ lexer! {
 
     r#">"# => Token::Gt,
     r#"<"# => Token::Lt,
+
+    r#"\|"# => Token::Pipe,
+    r#"\&"# => Token::Ampersand,
+    r#"%"# => Token::Percent,
 
     r#"\("# => Token::LParen,
     r#"\)"# => Token::RParen,
