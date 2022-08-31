@@ -6,7 +6,6 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 use std::process::exit;
-use std::process::Command;
 
 use llvm_sys::analysis::*;
 use llvm_sys::bit_writer::*;
@@ -87,7 +86,11 @@ pub unsafe fn compile_llvm(ast: Vec<Expr>) {
     let mut error = std::ptr::null_mut() as *mut i8;
 
     LLVMLinkInMCJIT();
-    LLVM_InitializeNativeTarget();
+    LLVM_InitializeAllTargetInfos();
+    LLVM_InitializeAllTargets();
+    LLVM_InitializeAllTargetMCs();
+    LLVM_InitializeAllAsmParsers();
+    LLVM_InitializeAllAsmPrinters();
 
     if LLVMCreateExecutionEngineForModule(&mut engine, module, &mut error) == 1 {
         eprintln!("failed to create execution engine");
@@ -106,38 +109,6 @@ pub unsafe fn compile_llvm(ast: Vec<Expr>) {
     if LLVMWriteBitcodeToFile(module, b"out.bc\0".as_ptr() as *const _) != 0 {
         eprintln!("error writing bitcode to file, skipping");
     }
-
-    if cfg!(target_os = "windows") {
-        Command::new("cmd")
-            .args(["/C", "llvm-dis out.bc"])
-            .output()
-            .unwrap();
-
-        Command::new("cmd")
-            .args(["/C", "llc -filetype=obj out.ll -o out.o"])
-            .output()
-            .unwrap();
-
-        Command::new("cmd")
-            .args(["/C", "clang out.o -o out;"])
-            .output()
-            .unwrap();
-    } else {
-        Command::new("sh")
-            .args(["-c", "llvm-dis out.bc"])
-            .output()
-            .unwrap();
-
-        Command::new("sh")
-            .args(["-c", "llc -filetype=obj out.ll -o out.o"])
-            .output()
-            .unwrap();
-
-        Command::new("sh")
-            .args(["-c", "clang out.o -o out;"])
-            .output()
-            .unwrap();
-    };
 }
 
 unsafe fn match_expr(

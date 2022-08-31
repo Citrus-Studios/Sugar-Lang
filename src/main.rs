@@ -19,6 +19,14 @@ mod parser;
 struct Args {
     #[clap(short, long, default_value = "main.sug")]
     file: String,
+    #[clap(short, long)]
+    printing: bool,
+    #[clap(short, long)]
+    strip: bool,
+    #[clap(short, long)]
+    release: bool,
+    #[clap(short = 'S', long)]
+    r#static: bool,
 }
 
 fn main() {
@@ -43,13 +51,70 @@ fn main() {
         file.read_to_string(&mut contents).unwrap();
         contents
     };
-    let lexer = lexer::Lexer::new(&contents).inspect(|tok| eprintln!("tok: {:?}", tok));
+    let lexer = lexer::Lexer::new(&contents).inspect(|tok| {
+        if args.printing {
+            println!("tok: {:?}", tok)
+        }
+    });
     let program = parser::parse(lexer).unwrap();
 
-    println!("{:#?}", program.stmts);
+    if args.printing {
+        println!("{:#?}", program.stmts);
+    }
 
-    let llvm = unsafe { compile_llvm(program.stmts) };
+    let _ = unsafe { compile_llvm(program.stmts) };
+
+    let prefix;
+    let cmd;
+
+    if cfg!(target_os = "windows") {
+        prefix = "/C";
+        cmd = "cmd";
+    } else {
+        prefix = "-c";
+        cmd = "sh";
+    }
+    Command::new(cmd)
+        .args([prefix, "llvm-dis out.bc"])
+        .output()
+        .unwrap();
+
+    Command::new(cmd)
+        .args([prefix, "llc -filetype=obj out.ll -o out.o"])
+        .output()
+        .unwrap();
+    if args.r#static {
+        if args.release {
+            Command::new(cmd)
+                .args([prefix, "clang -O3 -static out.o -o out;"])
+                .output()
+                .unwrap();
+        } else {
+            Command::new(cmd)
+                .args([prefix, "clang -static out.o -o out;"])
+                .output()
+                .unwrap();
+        }
+    } else {
+        if args.release {
+            Command::new(cmd)
+                .args([prefix, "clang -O3 out.o -o out;"])
+                .output()
+                .unwrap();
+        } else {
+            Command::new(cmd)
+                .args([prefix, "clang out.o -o out;"])
+                .output()
+                .unwrap();
+        }
+    }
+    if args.strip {
+        Command::new(cmd)
+            .args([prefix, "strip out;"])
+            .output()
+            .unwrap();
+    }
 
     let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    println!("Elapsed: {:.3?}", elapsed);
 }
