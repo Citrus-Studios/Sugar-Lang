@@ -14,6 +14,6 @@ define main = {
 	for var pemdas_f = pemdas; pemdas != (pemdas_f + 4); mutate pemdas = pemdas + 1; { 
 		pass; 
 	};
-	mutate pemdas = inc pemdas;
+	mutate pemdas = call inc { pemdas };
 	return pemdas;
 };
