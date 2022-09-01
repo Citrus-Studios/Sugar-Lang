@@ -225,7 +225,25 @@ plex::parser! {
         atom[a] => a
     }
 
+    funcargs: Vec<Expr> {
+        atom[a] funcargs[mut b] => {
+            let mut a = vec![a];
+            a.append(&mut b);
+            a
+        }
+        => vec![]
+    }
+
     atom: Expr {
+        Call atom[name] LBrace funcargs[a] RBrace => {
+            Expr {
+                span: span!(),
+                node: Expr_::FunctionCall(match name.node {
+                    Expr_::Var(a) => a,
+                    _ => panic!()
+                }, a)
+            }
+        },
         Ident(a) => Expr {
             span: span!(),
             node: Expr_::Var(a)

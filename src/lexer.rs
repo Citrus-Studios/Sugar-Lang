@@ -47,6 +47,8 @@ pub enum Token {
     For,
 
     Pass,
+
+    Call,
 }
 
 lexer! {
@@ -74,6 +76,8 @@ lexer! {
     r#"for"# => Token::For,
 
     r#"pass"# => Token::Pass,
+
+    r#"call"# => Token::Call,
 
     r#"[a-zA-Z_][a-zA-Z0-9_]*"# => Token::Ident(text.to_owned()),
 
