@@ -1,6 +1,3 @@
-#![feature(proc_macro_hygiene)]
-#![feature(core_intrinsics)]
-
 use clap::Parser as ClapParser;
 use std::io::prelude::*;
 use std::time::Instant;
@@ -86,24 +83,24 @@ fn main() {
     if args.r#static {
         if args.release {
             Command::new(cmd)
-                .args([prefix, "clang -O3 -static out.o -o out;"])
+                .args([prefix, "ld.lld -O3 -static out.o -o out;"])
                 .output()
                 .unwrap();
         } else {
             Command::new(cmd)
-                .args([prefix, "clang -static out.o -o out;"])
+                .args([prefix, "ld.lld -static out.o -o out;"])
                 .output()
                 .unwrap();
         }
     } else {
         if args.release {
             Command::new(cmd)
-                .args([prefix, "clang -O3 out.o -o out;"])
+                .args([prefix, "ld.lld -O3 out.o -o out;"])
                 .output()
                 .unwrap();
         } else {
             Command::new(cmd)
-                .args([prefix, "clang out.o -o out;"])
+                .args([prefix, "ld.lld out.o -o out;"])
                 .output()
                 .unwrap();
         }
