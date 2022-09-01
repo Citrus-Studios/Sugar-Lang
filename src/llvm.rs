@@ -42,23 +42,23 @@ pub unsafe fn compile_llvm(ast: Vec<Expr>) {
                 let func = LLVMAddFunction(module, name_c.as_ptr(), function_sig);
                 functions.insert(name.clone(), func);
             }
-            Expr_::Define(name, _args, expr) => {
-                let func = *functions.get_key_value(&name).unwrap().1;
-                let entry_name = CString::new("entry").unwrap();
-                let entry = LLVMAppendBasicBlock(func, entry_name.as_ptr());
+            Expr_::Define(name, args, expr) => {
+                let func = *functions.get(&name).unwrap();
+                let mut args_hash = HashMap::new();
+                let entry = LLVMAppendBasicBlock(func, b"entry\0".as_ptr() as *const _);
                 let builder = LLVMCreateBuilder();
                 LLVMPositionBuilderAtEnd(builder, entry);
-                let mut variables = HashMap::new();
-                if expr.len() == 1 {
-                    match expr[0].node {
-                        Expr_::Byte(v) => {
-                            LLVMBuildRet(builder, LLVMConstInt(LLVMInt8Type(), v.into(), 0));
-                        }
-                        _ => todo!(),
-                    }
-                } else {
-                    iter_statements(builder, expr, &mut variables)
+                for x in args.into_iter().enumerate() {
+                    args_hash.insert(x.1, LLVMGetParam(func, x.0 as u32));
                 }
+                let mut variables = HashMap::new();
+                iter_statements(
+                    builder,
+                    expr,
+                    &mut variables,
+                    &mut functions,
+                    &mut args_hash,
+                )
             }
             _ => todo!(),
         }
@@ -115,43 +115,50 @@ unsafe fn match_expr(
     expr: Expr_,
     mut variables: &mut HashMap<String, LLVMValueRef>,
     builder: LLVMBuilderRef,
+    arg: &mut HashMap<String, LLVMValueRef>,
 ) -> LLVMValueRef {
     match expr {
         Expr_::Byte(v) => LLVMConstInt(LLVMInt8Type(), v.into(), 0),
-        Expr_::Var(v) => LLVMBuildLoad2(
-            builder,
-            LLVMInt8Type(),
-            *variables.get_key_value(&v).unwrap().1,
-            v.as_ptr() as *const _,
-        ),
+        Expr_::Var(v) => {
+            if let Some(v) = arg.get(&v) {
+                *v
+            } else {
+                LLVMBuildLoad2(
+                    builder,
+                    LLVMInt8Type(),
+                    *variables.get_key_value(&v).unwrap().1,
+                    v.as_ptr() as *const _,
+                )
+            }
+        }
         Expr_::Add(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildAdd(builder, a, b, b"tmp\0".as_ptr() as *const _)
         }
         Expr_::Sub(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildSub(builder, a, b, b"tmp\0".as_ptr() as *const _)
         }
         Expr_::Mul(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildMul(builder, a, b, b"tmp\0".as_ptr() as *const _)
         }
         Expr_::Div(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildUDiv(builder, a, b, b"tmp\0".as_ptr() as *const _)
         }
         Expr_::Mod(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildURem(builder, a, b, b"tmp\0".as_ptr() as *const _)
         }
         Expr_::Eq(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildICmp(
@@ -166,8 +173,8 @@ unsafe fn match_expr(
             )
         }
         Expr_::NEq(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildICmp(
@@ -182,8 +189,8 @@ unsafe fn match_expr(
             )
         }
         Expr_::Gt(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildICmp(
@@ -198,8 +205,8 @@ unsafe fn match_expr(
             )
         }
         Expr_::Lt(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildICmp(
@@ -214,8 +221,8 @@ unsafe fn match_expr(
             )
         }
         Expr_::EGt(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildICmp(
@@ -230,8 +237,8 @@ unsafe fn match_expr(
             )
         }
         Expr_::ELt(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildICmp(
@@ -246,7 +253,7 @@ unsafe fn match_expr(
             )
         }
         Expr_::LNot(a) => {
-            let a = match_expr(a.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildNot(builder, a, b"tmp\0".as_ptr() as *const _),
@@ -255,8 +262,8 @@ unsafe fn match_expr(
             )
         }
         Expr_::LAnd(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildAnd(builder, a, b, b"tmp\0".as_ptr() as *const _),
@@ -265,8 +272,8 @@ unsafe fn match_expr(
             )
         }
         Expr_::LOr(a, b) => {
-            let a = match_expr(a.node, variables, builder);
-            let b = match_expr(b.node, variables, builder);
+            let a = match_expr(a.node, variables, builder, arg);
+            let b = match_expr(b.node, variables, builder, arg);
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildOr(builder, a, b, b"tmp\0".as_ptr() as *const _),
@@ -280,7 +287,7 @@ unsafe fn match_expr(
             variables.insert(name.clone(), alloced);
             LLVMBuildStore(
                 builder,
-                match_expr(expr.node.clone(), &mut variables, builder),
+                match_expr(expr.node.clone(), &mut variables, builder, arg),
                 alloced,
             )
         }
@@ -288,7 +295,7 @@ unsafe fn match_expr(
             let name = name.clone();
             LLVMBuildStore(
                 builder,
-                match_expr(expr.node.clone(), &mut variables, builder),
+                match_expr(expr.node.clone(), &mut variables, builder, arg),
                 *variables.get_key_value(&name).unwrap().1,
             )
         }
@@ -300,6 +307,8 @@ pub unsafe fn iter_statements(
     builder: *mut LLVMBuilder,
     expr: Vec<Expr>,
     mut variables: &mut HashMap<String, LLVMValueRef>,
+    functions: &mut HashMap<String, LLVMValueRef>,
+    arg: &mut HashMap<String, LLVMValueRef>,
 ) {
     for y in expr {
         match y.node {
@@ -308,7 +317,7 @@ pub unsafe fn iter_statements(
                 let alloced = LLVMBuildAlloca(builder, LLVMInt8Type(), name.as_ptr() as *mut _);
                 LLVMBuildStore(
                     builder,
-                    match_expr(expr.node.clone(), &mut variables, builder),
+                    match_expr(expr.node.clone(), &mut variables, builder, arg),
                     alloced,
                 );
                 variables.insert(name.clone(), alloced);
@@ -317,12 +326,12 @@ pub unsafe fn iter_statements(
                 let name = name.clone();
                 LLVMBuildStore(
                     builder,
-                    match_expr(expr.node.clone(), &mut variables, builder),
+                    match_expr(expr.node.clone(), &mut variables, builder, arg),
                     *variables.get_key_value(&name).unwrap().1,
                 );
             }
             Expr_::IfElse(expr, if_b, else_b) => {
-                let condition = match_expr(expr.node, variables, builder);
+                let condition = match_expr(expr.node, variables, builder, arg);
                 let condition = LLVMBuildICmp(
                     builder,
                     LLVMIntPredicate::LLVMIntNE,
@@ -337,19 +346,19 @@ pub unsafe fn iter_statements(
                 LLVMBuildCondBr(builder, condition, then_block, else_block);
 
                 LLVMPositionBuilderAtEnd(builder, then_block);
-                iter_statements(builder, if_b, variables);
+                iter_statements(builder, if_b, variables, functions, arg);
                 LLVMBuildBr(builder, end);
 
                 LLVMPositionBuilderAtEnd(builder, else_block);
-                iter_statements(builder, else_b, variables);
+                iter_statements(builder, else_b, variables, functions, arg);
                 LLVMBuildBr(builder, end);
 
                 LLVMPositionBuilderAtEnd(builder, end);
             }
             Expr_::ForLoop(init, comp, run, block) => {
-                match_expr(init.node, variables, builder);
+                match_expr(init.node, variables, builder, arg);
 
-                let condition = match_expr(comp.node.clone(), variables, builder);
+                let condition = match_expr(comp.node.clone(), variables, builder, arg);
                 let condition = LLVMBuildICmp(
                     builder,
                     LLVMIntPredicate::LLVMIntNE,
@@ -364,9 +373,9 @@ pub unsafe fn iter_statements(
                 LLVMBuildCondBr(builder, condition, loop_block, end);
 
                 LLVMPositionBuilderAtEnd(builder, loop_block);
-                iter_statements(builder, block, variables);
-                match_expr(run.node, variables, builder);
-                let condition = match_expr(comp.node, variables, builder);
+                iter_statements(builder, block, variables, functions, arg);
+                match_expr(run.node, variables, builder, arg);
+                let condition = match_expr(comp.node, variables, builder, arg);
                 let condition = LLVMBuildICmp(
                     builder,
                     LLVMIntPredicate::LLVMIntNE,
@@ -382,18 +391,33 @@ pub unsafe fn iter_statements(
                 LLVMBuildRet(builder, LLVMConstInt(LLVMInt8Type(), v.into(), 0));
             }
             Expr_::Var(v) => {
-                LLVMBuildRet(
-                    builder,
-                    LLVMBuildLoad2(
+                if let Some(v) = arg.get(&v) {
+                } else {
+                    LLVMBuildRet(
                         builder,
-                        LLVMInt8Type(),
-                        *variables.get_key_value(&v).unwrap().1,
-                        v.as_ptr() as *const _,
-                    ),
+                        LLVMBuildLoad2(
+                            builder,
+                            LLVMInt8Type(),
+                            *variables.get_key_value(&v).unwrap().1,
+                            v.as_ptr() as *const _,
+                        ),
+                    );
+                }
+            }
+            Expr_::FunctionCall(name, args) => {
+                LLVMBuildCall2(
+                    builder,
+                    LLVMInt8Type(),
+                    *functions.get(&name).unwrap(),
+                    args.as_ptr() as *mut _,
+                    args.len() as u32,
+                    b"tmp\0".as_ptr() as *const _,
                 );
             }
             Expr_::Pass => {}
-            _ => todo!(),
+            _ => {
+                match_expr(_.node, variables, builder, arg);
+            }
         }
     }
 }
