@@ -1,9 +1,5 @@
-// declare inc = byte -> byte;
-// define inc x = x + 1;
-
-/* llvm_asm = {
-	
-}; */
+declare inc = byte -> byte;
+define inc x = x + 1;
 
 declare main = ! -> byte;
 define main = {
@@ -18,5 +14,6 @@ define main = {
 	for var pemdas_f = pemdas; pemdas != (pemdas_f + 4); mutate pemdas = pemdas + 1; { 
 		pass; 
 	};
+	mutate pemdas = inc pemdas;
 	return pemdas;
 };
