@@ -2,7 +2,7 @@ use clap::Parser as ClapParser;
 use std::io::prelude::*;
 use std::time::Instant;
 use std::{fs::File, process::Command};
-use tracing::Level;
+use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 use crate::llvm::compile_llvm;
@@ -10,6 +10,7 @@ use crate::llvm::compile_llvm;
 mod lexer;
 mod llvm;
 mod parser;
+mod unwrap_null;
 
 #[derive(ClapParser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -28,11 +29,6 @@ struct Args {
 
 fn main() {
     let now = Instant::now();
-    // Subscriber Stuff
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::TRACE)
-        .finish();
-    tracing::subscriber::set_global_default(subscriber).expect("Failed Setting Global Subscriber");
 
     let command = if cfg!(target_os = "windows") {
         Command::new("cmd").args(["/C", "mkdir build"]).output()
@@ -42,22 +38,24 @@ fn main() {
     command.unwrap();
 
     let args = Args::parse();
+    if args.printing {
+        // Subscriber Stuff
+        let subscriber = FmtSubscriber::builder()
+            .with_max_level(Level::TRACE)
+            .finish();
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("Failed Setting Global Subscriber");
+    }
     let contents = {
         let mut file = File::open(args.file.as_str()).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
         contents
     };
-    let lexer = lexer::Lexer::new(&contents).inspect(|tok| {
-        if args.printing {
-            println!("tok: {:?}", tok)
-        }
-    });
+    let lexer = lexer::Lexer::new(&contents).inspect(|tok| info!("tok: {:?}", tok));
     let program = parser::parse(lexer).unwrap();
 
-    if args.printing {
-        println!("{:#?}", program.stmts);
-    }
+    info!("{:#?}", program.stmts);
 
     let _ = unsafe { compile_llvm(program.stmts) };
 
@@ -113,5 +111,5 @@ fn main() {
     }
 
     let elapsed = now.elapsed();
-    println!("Elapsed: {:.3?}", elapsed);
+    info!("Elapsed: {:.3?}", elapsed);
 }

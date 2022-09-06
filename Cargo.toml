@@ -6,6 +6,13 @@ authors = ["lemonjamesd lemonjamesd@github"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+
 [dependencies]
 build = "0.0.2"
 clap = { version = "3.2.12", features = ["derive"] }
