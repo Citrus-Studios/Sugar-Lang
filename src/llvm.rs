@@ -7,13 +7,7 @@ use std::io::Read;
 use std::path::Path;
 use std::process::exit;
 
-use llvm_sys::analysis::*;
-use llvm_sys::bit_writer::*;
-use llvm_sys::core::*;
-use llvm_sys::execution_engine::*;
-use llvm_sys::prelude::*;
-use llvm_sys::target::*;
-use llvm_sys::*;
+use inkwell::{context::Context, types::FunctionType};
 use tracing::debug;
 use tracing::instrument;
 use tracing::{error, info};
@@ -22,8 +16,9 @@ use crate::parser::{Expr, Expr_};
 use crate::unwrap_null::UnwrapNull;
 
 #[instrument(skip_all)]
-pub unsafe fn compile_llvm(mut ast: Vec<Expr>) {
-    let module = LLVMModuleCreateWithName(b"main\0".as_ptr() as *const _);
+pub fn compile_llvm(mut ast: Vec<Expr>) {
+    let context = Context::create();
+    let module = context.create_module("main");
 
     let mut functions = HashMap::new();
 
@@ -43,22 +38,17 @@ pub unsafe fn compile_llvm(mut ast: Vec<Expr>) {
                 let types = types
                     .into_iter()
                     .map(|t| match t.as_str() {
-                        "byte" => LLVMInt8Type(),
-                        "void" => LLVMVoidType(),
+                        "byte" => context.i8_type(),
+                        "void" => context.void_type(),
                         _ => panic!("Unknown Type"),
                     })
                     .collect::<Vec<LLVMTypeRef>>();
                 let return_type = types[types.len() - 1];
                 let args = &types[..types.len() - 2];
-                let function_sig =
-                    LLVMFunctionType(return_type, args.as_ptr() as *mut _, args.len() as u32, 0);
+                let function_sig = return_type.fn_type(args, false);
 
-                let func = LLVMAddFunction(
-                    module,
-                    format!("{name}/0").as_bytes().as_ptr() as *const _,
-                    function_sig,
-                );
-                functions.insert(name.clone(), func.clone());
+                let func = module.add_function(&name, function_sig);
+                functions.insert(name.clone(), func);
             }
             _ => {}
         }
@@ -68,15 +58,15 @@ pub unsafe fn compile_llvm(mut ast: Vec<Expr>) {
             Expr_::Define(name, args, expr) => {
                 let func = *functions.get(&name).unwrap();
                 let mut args_hash = HashMap::new();
-                let entry = LLVMAppendBasicBlock(func, b"entry\0".as_ptr() as *const _);
-                let builder = LLVMCreateBuilder();
-                LLVMPositionBuilderAtEnd(builder, entry);
+                let entry = context.append_basic_block(&func, "entry");
+                let builder = context.create_builder();
+                builder.position_at_end(&entry);
                 for x in args.into_iter().enumerate() {
                     args_hash.insert(x.1, LLVMGetParam(func, x.0 as u32));
                 }
                 let mut variables = HashMap::new();
                 iter_statements(
-                    builder,
+                    &mut context,
                     expr,
                     &mut variables,
                     &mut functions,
@@ -135,23 +125,23 @@ pub unsafe fn compile_llvm(mut ast: Vec<Expr>) {
 }
 
 #[instrument(skip_all)]
-unsafe fn match_expr(
+fn match_expr(
     expr: Expr_,
     mut variables: &mut HashMap<String, LLVMValueRef>,
-    builder: LLVMBuilderRef,
+    context: &mut Context,
     arg: &mut HashMap<String, LLVMValueRef>,
-    functions: &mut HashMap<String, LLVMValueRef>,
+    functions: &mut HashMap<String, FunctionType>,
 ) -> LLVMValueRef {
     info!("{:#?}", expr);
     match expr {
-        Expr_::Byte(v) => LLVMConstInt(LLVMInt8Type(), v.into(), 0),
+        Expr_::Byte(v) => LLVMConstInt(context.i8_type(), v.into(), 0),
         Expr_::Var(v) => {
             if let Some(v) = arg.get(&v) {
                 *v
             } else {
                 LLVMBuildLoad2(
                     builder,
-                    LLVMInt8Type(),
+                    context.i8_type(),
                     *variables.get_key_value(&v).unwrap().1,
                     v.as_ptr() as *const _,
                 )
@@ -194,7 +184,7 @@ unsafe fn match_expr(
                     b,
                     b"tmp\0".as_ptr() as *const _,
                 ),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -210,7 +200,7 @@ unsafe fn match_expr(
                     b,
                     b"tmp\0".as_ptr() as *const _,
                 ),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -226,7 +216,7 @@ unsafe fn match_expr(
                     b,
                     b"tmp\0".as_ptr() as *const _,
                 ),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -242,7 +232,7 @@ unsafe fn match_expr(
                     b,
                     b"tmp\0".as_ptr() as *const _,
                 ),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -258,7 +248,7 @@ unsafe fn match_expr(
                     b,
                     b"tmp\0".as_ptr() as *const _,
                 ),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -274,7 +264,7 @@ unsafe fn match_expr(
                     b,
                     b"tmp\0".as_ptr() as *const _,
                 ),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -283,7 +273,7 @@ unsafe fn match_expr(
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildNot(builder, a, b"tmp\0".as_ptr() as *const _),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -293,7 +283,7 @@ unsafe fn match_expr(
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildAnd(builder, a, b, b"tmp\0".as_ptr() as *const _),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
@@ -303,13 +293,13 @@ unsafe fn match_expr(
             LLVMBuildIntCast(
                 builder,
                 LLVMBuildOr(builder, a, b, b"tmp\0".as_ptr() as *const _),
-                LLVMInt8Type(),
+                context.i8_type(),
                 b"tmp\0".as_ptr() as *const _,
             )
         }
         Expr_::Assign(name, expr) => {
             let name = name.clone();
-            let alloced = LLVMBuildAlloca(builder, LLVMInt8Type(), name.as_ptr() as *mut _);
+            let alloced = LLVMBuildAlloca(builder, context.i8_type(), name.as_ptr() as *mut _);
             variables.insert(name.clone(), alloced);
             LLVMBuildStore(
                 builder,
@@ -343,7 +333,7 @@ unsafe fn match_expr(
 
             LLVMBuildCall2(
                 builder,
-                LLVMInt8Type(),
+                context.i8_type(),
                 *functions.get(&name).unwrap(),
                 (a.as_ptr() as *mut LLVMValueRef).unwrap_null(),
                 args.len() as u32,
@@ -355,8 +345,8 @@ unsafe fn match_expr(
 }
 
 #[instrument(skip_all)]
-pub unsafe fn iter_statements(
-    builder: *mut LLVMBuilder,
+pub fn iter_statements(
+    context: &mut Context,
     expr: Vec<Expr>,
     mut variables: &mut HashMap<String, LLVMValueRef>,
     functions: &mut HashMap<String, LLVMValueRef>,
@@ -367,7 +357,7 @@ pub unsafe fn iter_statements(
         match y.node.clone() {
             Expr_::Assign(name, expr) => {
                 let name = name.clone();
-                let alloced = LLVMBuildAlloca(builder, LLVMInt8Type(), name.as_ptr() as *mut _);
+                let alloced = LLVMBuildAlloca(builder, context.i8_type(), name.as_ptr() as *mut _);
                 LLVMBuildStore(
                     builder,
                     match_expr(expr.node.clone(), &mut variables, builder, arg, functions),
@@ -391,7 +381,7 @@ pub unsafe fn iter_statements(
                     builder,
                     LLVMIntPredicate::LLVMIntNE,
                     condition,
-                    LLVMConstInt(LLVMInt8Type(), 0, 0),
+                    LLVMConstInt(context.i8_type(), 0, 0),
                     b"tmp\0".as_ptr() as *const _,
                 );
                 let func = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder));
@@ -418,7 +408,7 @@ pub unsafe fn iter_statements(
                     builder,
                     LLVMIntPredicate::LLVMIntNE,
                     condition,
-                    LLVMConstInt(LLVMInt8Type(), 0, 0),
+                    LLVMConstInt(context.i8_type(), 0, 0),
                     b"tmp\0".as_ptr() as *const _,
                 );
 
@@ -435,7 +425,7 @@ pub unsafe fn iter_statements(
                     builder,
                     LLVMIntPredicate::LLVMIntNE,
                     condition,
-                    LLVMConstInt(LLVMInt8Type(), 0, 0),
+                    LLVMConstInt(context.i8_type(), 0, 0),
                     b"tmp\0".as_ptr() as *const _,
                 );
                 LLVMBuildCondBr(builder, condition, loop_block, end);
@@ -443,7 +433,7 @@ pub unsafe fn iter_statements(
                 LLVMPositionBuilderAtEnd(builder, end);
             }
             Expr_::Byte(v) => {
-                LLVMBuildRet(builder, LLVMConstInt(LLVMInt8Type(), v.into(), 0));
+                LLVMBuildRet(builder, LLVMConstInt(context.i8_type(), v.into(), 0));
             }
             Expr_::Var(v) => {
                 if let Some(v) = arg.get(&v) {
@@ -452,7 +442,7 @@ pub unsafe fn iter_statements(
                         builder,
                         LLVMBuildLoad2(
                             builder,
-                            LLVMInt8Type(),
+                            context.i8_type(),
                             *variables.get_key_value(&v).unwrap().1,
                             v.as_ptr() as *const _,
                         ),
@@ -462,7 +452,7 @@ pub unsafe fn iter_statements(
             Expr_::FunctionCall(name, args) => {
                 LLVMBuildCall2(
                     builder,
-                    LLVMInt8Type(),
+                    context.i8_type(),
                     *functions.get(&name).unwrap(),
                     args.as_ptr() as *mut _,
                     args.len() as u32,

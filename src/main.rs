@@ -57,7 +57,7 @@ fn main() {
 
     info!("{:#?}", program.stmts);
 
-    let _ = unsafe { compile_llvm(program.stmts) };
+    let _ = compile_llvm(program.stmts);
 
     let prefix;
     let cmd;
