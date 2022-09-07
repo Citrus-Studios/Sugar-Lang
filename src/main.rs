@@ -5,13 +5,9 @@ use std::{fs::File, process::Command};
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
-use crate::llvm::compile_llvm;
-
 mod lexer;
 mod llvm;
 mod parser;
-pub mod traits;
-mod unwrap_null;
 
 #[derive(ClapParser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -58,7 +54,7 @@ fn main() {
 
     info!("{:#?}", program.stmts);
 
-    let _ = compile_llvm(program.stmts);
+    let _ = llvm::Compiler::new(program.stmts).compile_llvm();
 
     let prefix;
     let cmd;
