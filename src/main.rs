@@ -10,6 +10,7 @@ use crate::llvm::compile_llvm;
 mod lexer;
 mod llvm;
 mod parser;
+pub mod traits;
 mod unwrap_null;
 
 #[derive(ClapParser, Debug)]
