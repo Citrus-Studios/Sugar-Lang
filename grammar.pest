@@ -1,17 +1,28 @@
-WHITESPACE = { " " | "\n" | "\r" }
+WHITESPACE = _{ " " | "\n" | "\r" | "\t" }
 
 ident = { ASCII_ALPHA ~ ("_" | "-" | ASCII_ALPHANUMERIC)* }
 builtin_types = { "byte" | "!" }
 
 declare_args = {
-	builtin_types
-	| ident 
-	| declare_args ~ "->" ~ declare_args
+      builtin_types ~ "->" ~ declare_args
+    | ident ~ "->" ~ declare_args
+    | builtin_types
+    | ident 
+}
+
+return_value = {
+	  ASCII_DIGIT+
+	| ident
+	| "!"
+}
+
+inner = {
+    "return" ~ return_value
 }
 
 outer = { 
-	"declare" ~ ident ~ "=" ~ declare_args
-	| "define" ~ ident ~ 
-	}
-statements = { SOI ~ outer* ~ ";" ~ EOI }
+	  "define" ~ ident ~ "=" ~ "{" ~ (inner ~ ";")+ ~ "}"
+	| "declare" ~ ident ~ "=" ~ declare_args
+}
 
+statements = _{ SOI ~ (outer ~ ";")* ~ EOI }
