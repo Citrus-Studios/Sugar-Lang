@@ -51,12 +51,11 @@ fn main() {
 		file.read_to_string(&mut contents).unwrap();
 		contents
 	};
-	let lexer = lexer::Lexer::new(&contents).inspect(|tok| info!("tok: {:?}", tok));
-	let program = parser::parse(lexer).unwrap();
+	// let lexer = lexer::Lexer::new(&contents).inspect(|tok| info!("tok: {:?}", tok));
 
-	info!("{:#?}", program.stmts);
+	// info!("{:#?}", program.stmts);
 
-	let _ = Compiler::new(program.stmts).compile_llvm();
+	// let _ = Compiler::new(program.stmts).compile_llvm();
 
 	let prefix;
 	let cmd;
