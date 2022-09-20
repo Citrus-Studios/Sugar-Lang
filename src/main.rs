@@ -13,17 +13,17 @@ mod parser;
 
 #[derive(ClapParser, Debug)]
 #[clap(author, version, about, long_about = None)]
-struct Args {
+pub struct Args {
 	#[clap(short, long, default_value = "main.sug")]
-	file: String,
+	pub file: String,
 	#[clap(short, long)]
-	printing: bool,
+	pub printing: bool,
 	#[clap(short, long)]
-	strip: bool,
+	pub strip: bool,
 	#[clap(short, long)]
-	release: bool,
+	pub release: bool,
 	#[clap(short = 'S', long)]
-	r#static: bool,
+	pub r#static: bool,
 }
 
 fn main() {
