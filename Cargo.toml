@@ -17,7 +17,9 @@ panic = "abort"
 build = "0.0.2"
 clap = { version = "3.2.12", features = ["derive"] }
 gag = "1.0.0"
-plex = "0.2.5"
 tracing = { version = "0.1.35", features = ["attributes"] }
 tracing-subscriber = "0.3.15"
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm12-0"] }
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = [
+	"llvm12-0",
+] }
+pest = "2.3.1"

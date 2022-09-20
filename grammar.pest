@@ -1,0 +1,17 @@
+WHITESPACE = { " " | "\n" | "\r" }
+
+ident = { ASCII_ALPHA ~ ("_" | "-" | ASCII_ALPHANUMERIC)* }
+builtin_types = { "byte" | "!" }
+
+declare_args = {
+	builtin_types
+	| ident 
+	| declare_args ~ "->" ~ declare_args
+}
+
+outer = { 
+	"declare" ~ ident ~ "=" ~ declare_args
+	| "define" ~ ident ~ 
+	}
+statements = { SOI ~ outer* ~ ";" ~ EOI }
+
