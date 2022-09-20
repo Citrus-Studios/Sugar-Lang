@@ -23,3 +23,4 @@ inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", feat
 	"llvm12-0",
 ] }
 pest = "2.3.1"
+pest_derive = "2.3.1"
