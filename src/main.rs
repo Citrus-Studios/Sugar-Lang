@@ -8,7 +8,7 @@ use tracing_subscriber::FmtSubscriber;
 use crate::commands::add_commands;
 
 mod commands;
-mod llvm_compiler;
+// mod llvm_compiler;
 mod parser;
 
 #[derive(ClapParser, Debug)]
