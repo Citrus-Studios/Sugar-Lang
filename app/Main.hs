@@ -1,4 +1,9 @@
 module Main where
 
+import Lexer
+import System.IO
+
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+	contents <- openAndRead "sugar/toy.sug"
+	putStrLn contents
