@@ -24,3 +24,10 @@ data Token =
 -- Opens and reads a file
 openAndRead :: String -> IO String 
 openAndRead fileName = openFile fileName ReadMode |> hGetContents |> $!!
+
+-- Iterates contents
+iterFile :: String
+iterFile contents = map matchCharToToken contents
+
+-- Map a char for `iterFile`
+matchCharToToken :: Char -> Token
