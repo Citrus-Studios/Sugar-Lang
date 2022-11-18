@@ -65,7 +65,9 @@ executable sugar-lang
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.0.0
+    build-depends:
+        base ^>=4.17.0.0,
+        deepseq ^>=1.4.8.0
 
     -- Directories containing source files.
     hs-source-dirs:   app
