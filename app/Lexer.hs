@@ -4,6 +4,23 @@ import System.IO
 import Control.DeepSeq
 import Flow
 
+-- Token Types
+data Token = 
+	Char Char |
+	Number Int |
+
+	-- Math
+	Plus |
+	Minus |
+	Asterisk |
+	Slash |
+	Equals |
+
+	-- Misc
+	Bang |
+	SemiColon
+
+
 -- Opens and reads a file
 openAndRead :: String -> IO String 
 openAndRead fileName = openFile fileName ReadMode |> hGetContents |> $!!
