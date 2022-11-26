@@ -23,7 +23,7 @@ data Token =
 
 -- Opens and reads a file
 openAndRead :: String -> IO String 
-openAndRead fileName = openFile fileName ReadMode |> hGetContents |> $!!
+openAndRead fileName = $!! <| hGetContents <| openFile fileName ReadMode |> hClose
 
 -- Iterates contents
 iterFile :: String
