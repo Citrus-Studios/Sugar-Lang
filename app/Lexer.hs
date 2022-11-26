@@ -31,3 +31,11 @@ iterFile contents = map matchCharToToken contents
 
 -- Map a char for `iterFile`
 matchCharToToken :: Char -> Token
+matchCharToToken c | isAlpha c = Char c
+				   | c == '+'  = Plus
+				   | c == '-'  = Minus
+				   | c == '*'  = Asterisk
+				   | c == '/'  = Slash
+				   | c == '='  = Equals
+				   | c == '!'  = Bang
+				   | c == ';'  = SemiColon
