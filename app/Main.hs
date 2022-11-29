@@ -5,5 +5,6 @@ import System.IO
 
 main :: IO ()
 main = do
-	contents <- openAndRead "sugar/toy.sug"
+	contents <- readFile' "sugar/toy.sug"
+	iterFile contents
 	putStrLn contents
