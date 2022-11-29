@@ -1,9 +1,5 @@
 module Lexer where
 
-import System.IO
-import Control.DeepSeq
-import Flow
-
 -- Token Types
 data Token = 
 	Char Char |
