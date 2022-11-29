@@ -20,11 +20,6 @@ data Token =
 	Bang |
 	SemiColon
 
-
--- Opens and reads a file
-openAndRead :: String -> IO String 
-openAndRead fileName = $!! <| hGetContents <| openFile fileName ReadMode |> hClose
-
 -- Iterates contents
 iterFile :: String
 iterFile contents = map matchCharToToken contents
